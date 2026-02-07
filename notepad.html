@@ -2,71 +2,102 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-
-<link rel="stylesheet" href="https://unpkg.com/98.css">
 <link href="https://fonts.cdnfonts.com/css/w95fa" rel="stylesheet">
-
+<link rel="stylesheet" href="https://unpkg.com/98.css">
 <style>
-html, body {
-  height: 100%;
-  margin: 0;
-  font-family: "W95FA", monospace;
-  font-size: 12px;
-  background: white;
-}
-
-.menu-bar {
-  display: flex;
-  gap: 12px;
-  padding: 2px 6px;
-  border-bottom: 1px solid #808080;
-}
-
-#editor {
-  width: 100%;
-  height: calc(100% - 24px);
-  border: none;
-  resize: none;
-  outline: none;
-  font-family: "W95FA", monospace;
-  font-size: 12px;
-  padding: 4px;
-}
+html, body { height:100%; margin:0; font-family:"W95FA", monospace; font-size:12px; background:white; }
+.menu-bar { display:flex; border-bottom:1px solid #808080; background:#c0c0c0; user-select:none; z-index:100; }
+.menu { position:relative; padding:2px 8px; cursor:pointer; }
+.menu-items { display:none; position:absolute; top:100%; left:0; background:#c0c0c0; border:1px solid #808080; min-width:180px; z-index:1000; box-shadow: inset -1px -1px #000, inset 1px 1px #fff; }
+.menu-items div { padding:4px 8px; display:flex; justify-content:space-between; cursor:pointer; white-space:nowrap; }
+.menu-items div:hover { background:#000080; color:white; }
+.menu:hover .menu-items { display:block; }
+#editor { width:100%; height:calc(100% - 24px); border:none; resize:none; outline:none; padding:4px; font-family:"W95FA", monospace; font-size:12px; box-sizing:border-box; }
 </style>
 </head>
-
 <body>
 
 <div class="menu-bar">
-  <span>File</span>
-  <span>Edit</span>
-  <span>Search</span>
-  <span>Help</span>
+  <div class="menu">File
+    <div class="menu-items">
+      <div id="newFile">New <span>Ctrl+N</span></div>
+      <div id="openFile">Open… <span>Ctrl+O</span></div>
+      <div id="saveAs">Save As… <span>Ctrl+Shift+S</span></div>
+      <div id="printFile">Print… <span>Ctrl+P</span></div>
+      <div id="exitFile">Exit <span>Alt+F4</span></div>
+    </div>
+  </div>
+
+  <div class="menu">Edit
+    <div class="menu-items">
+      <div id="undoEdit">Undo <span>Ctrl+Z</span></div>
+      <div id="redoEdit">Redo <span>Ctrl+Y</span></div>
+      <div id="cutEdit">Cut <span>Ctrl+X</span></div>
+      <div id="copyEdit">Copy <span>Ctrl+C</span></div>
+      <div id="pasteEdit">Paste <span>Ctrl+V</span></div>
+      <div id="deleteEdit">Delete <span>Del</span></div>
+      <div id="selectAllEdit">Select All <span>Ctrl+A</span></div>
+    </div>
+  </div>
 </div>
 
 <textarea id="editor" spellcheck="false"></textarea>
+<input type="file" id="fileInput" accept=".txt" style="display:none">
 
 <script>
-const STORAGE_KEY = "web98-notepad-default";
 const editor = document.getElementById("editor");
+const fileInput = document.getElementById("fileInput");
 
-editor.value = localStorage.getItem(STORAGE_KEY) || "";
+let undoStack = [editor.value];
+let redoStack = [];
+function pushUndo(){ if(undoStack[undoStack.length-1]!==editor.value) undoStack.push(editor.value); if(undoStack.length>100) undoStack.shift(); }
+
+document.getElementById("newFile").addEventListener("click", () => { if(confirm("Clear editor? Unsaved changes lost.")){ editor.value=""; pushUndo(); redoStack=[]; editor.focus(); } });
+document.getElementById("openFile").addEventListener("click", () => { editor.focus(); fileInput.value=""; fileInput.click(); });
+fileInput.addEventListener("change", () => { const file = fileInput.files[0]; if(!file) return; const reader = new FileReader(); reader.onload=e=>{ editor.value=e.target.result; pushUndo(); redoStack=[]; editor.focus(); }; reader.readAsText(file); });
+document.getElementById("saveAs").addEventListener("click", () => { saveAsFile(); });
+
+function saveAsFile(){ 
+  const blob = new Blob([editor.value],{type:'text/plain'}); 
+  const a = document.createElement("a"); 
+  a.href = URL.createObjectURL(blob); 
+  a.download="note.txt"; 
+  document.body.appendChild(a); 
+  a.click(); 
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(a.href); },100); 
+}
+
+document.getElementById("printFile").addEventListener("click", () => { const w=window.open(); w.document.write('<pre>'+editor.value.replace(/</g,'&lt;')+'</pre>'); w.print(); w.close(); });
+document.getElementById("exitFile").addEventListener("click", () => { if(confirm("Exit editor? Unsaved changes lost.")) window.close(); });
+
+function hasSelection(){ return editor.selectionStart!==editor.selectionEnd; }
+function getSelectionRange(){ return {start:editor.selectionStart,end:editor.selectionEnd}; }
+
+document.getElementById("undoEdit").addEventListener("click",()=>{ if(undoStack.length>1){ redoStack.push(undoStack.pop()); editor.value=undoStack[undoStack.length-1]; } });
+document.getElementById("redoEdit").addEventListener("click",()=>{ if(redoStack.length){ const val=redoStack.pop(); undoStack.push(val); editor.value=val; } });
+document.getElementById("cutEdit").addEventListener("click",async()=>{ if(hasSelection()){ const {start,end}=getSelectionRange(); await navigator.clipboard.writeText(editor.value.substring(start,end)); editor.setRangeText("",start,end,"end"); } });
+document.getElementById("copyEdit").addEventListener("click",async()=>{ if(hasSelection()){ const {start,end}=getSelectionRange(); await navigator.clipboard.writeText(editor.value.substring(start,end)); } });
+document.getElementById("pasteEdit").addEventListener("click",async()=>{ const text=await navigator.clipboard.readText(); const {start,end}=getSelectionRange(); editor.setRangeText(text,start,end,"end"); });
+document.getElementById("deleteEdit").addEventListener("click",()=>{ if(hasSelection()){ const {start,end}=getSelectionRange(); editor.setRangeText("",start,end,"end"); } });
+document.getElementById("selectAllEdit").addEventListener("click",()=>editor.select());
+
+document.addEventListener("keydown",async e=>{
+  const key=e.key.toLowerCase();
+  if(e.ctrlKey && !e.shiftKey && key==='n'){ e.preventDefault(); editor.value=""; pushUndo(); redoStack=[]; }
+  if(e.ctrlKey && !e.shiftKey && key==='o'){ e.preventDefault(); fileInput.value=""; fileInput.click(); }
+  if(e.ctrlKey && e.shiftKey && key==='s'){ e.preventDefault(); saveAsFile(); }
+  if(e.ctrlKey && !e.shiftKey && key==='p'){ e.preventDefault(); const w=window.open(); w.document.write('<pre>'+editor.value.replace(/</g,'&lt;')+'</pre>'); w.print(); w.close(); }
+  if(e.ctrlKey && key==='z'){ e.preventDefault(); if(undoStack.length>1){ redoStack.push(undoStack.pop()); editor.value=undoStack[undoStack.length-1]; } }
+  if(e.ctrlKey && key==='y'){ e.preventDefault(); if(redoStack.length){ const val=redoStack.pop(); undoStack.push(val); editor.value=val; } }
+  if(e.ctrlKey && key==='x'){ e.preventDefault(); if(hasSelection()){ const {start,end}=getSelectionRange(); await navigator.clipboard.writeText(editor.value.substring(start,end)); editor.setRangeText("",start,end,"end"); } }
+  if(e.ctrlKey && key==='c'){ e.preventDefault(); if(hasSelection()){ const {start,end}=getSelectionRange(); await navigator.clipboard.writeText(editor.value.substring(start,end)); } }
+  if(e.ctrlKey && key==='v'){ e.preventDefault(); const text=await navigator.clipboard.readText(); const {start,end}=getSelectionRange(); editor.setRangeText(text,start,end,"end"); }
+  if(e.key==='Delete'){ e.preventDefault(); if(hasSelection()){ const {start,end}=getSelectionRange(); editor.setRangeText("",start,end,"end"); } }
+  if(e.ctrlKey && key==='a'){ e.preventDefault(); editor.select(); }
+});
 
 let saveTimer;
-editor.addEventListener("input", () => {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    localStorage.setItem(STORAGE_KEY, editor.value);
-  }, 300);
-});
-
-document.addEventListener("keydown", e => {
-  if (e.ctrlKey && e.key.toLowerCase() === "s") {
-    e.preventDefault();
-    localStorage.setItem(STORAGE_KEY, editor.value);
-  }
-});
+editor.addEventListener("input",()=>{ clearTimeout(saveTimer); saveTimer=setTimeout(()=>localStorage.setItem("web98-notepad",editor.value),300); pushUndo(); redoStack=[]; });
 </script>
-
 </body>
 </html>
