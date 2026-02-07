@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<link rel="stylesheet" href="https://unpkg.com/98.css">
+<link href="https://fonts.cdnfonts.com/css/w95fa" rel="stylesheet">
+
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: "W95FA", monospace;
+  font-size: 12px;
+  background: white;
+}
+
+.menu-bar {
+  display: flex;
+  gap: 12px;
+  padding: 2px 6px;
+  border-bottom: 1px solid #808080;
+}
+
+#editor {
+  width: 100%;
+  height: calc(100% - 24px);
+  border: none;
+  resize: none;
+  outline: none;
+  font-family: "W95FA", monospace;
+  font-size: 12px;
+  padding: 4px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="menu-bar">
+  <span>File</span>
+  <span>Edit</span>
+  <span>Search</span>
+  <span>Help</span>
+</div>
+
+<textarea id="editor" spellcheck="false"></textarea>
+
+<script>
+const STORAGE_KEY = "web98-notepad-default";
+const editor = document.getElementById("editor");
+
+editor.value = localStorage.getItem(STORAGE_KEY) || "";
+
+let saveTimer;
+editor.addEventListener("input", () => {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    localStorage.setItem(STORAGE_KEY, editor.value);
+  }, 300);
+});
+
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey && e.key.toLowerCase() === "s") {
+    e.preventDefault();
+    localStorage.setItem(STORAGE_KEY, editor.value);
+  }
+});
+</script>
+
+</body>
+</html>
