@@ -24,7 +24,6 @@ html, body { height:100%; margin:0; font-family:"W95FA", monospace; font-size:12
       <div id="openFile">Open… <span>Ctrl+O</span></div>
       <div id="saveAs">Save As… <span>Ctrl+Shift+S</span></div>
       <div id="printFile">Print… <span>Ctrl+P</span></div>
-      <div id="exitFile">Exit <span>Alt+F4</span></div>
     </div>
   </div>
 
@@ -68,7 +67,6 @@ function saveAsFile(){
 }
 
 document.getElementById("printFile").addEventListener("click", () => { const w=window.open(); w.document.write('<pre>'+editor.value.replace(/</g,'&lt;')+'</pre>'); w.print(); w.close(); });
-document.getElementById("exitFile").addEventListener("click", () => { if(confirm("Exit editor? Unsaved changes lost.")) window.close(); });
 
 function hasSelection(){ return editor.selectionStart!==editor.selectionEnd; }
 function getSelectionRange(){ return {start:editor.selectionStart,end:editor.selectionEnd}; }
