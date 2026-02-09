@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Win98 Calculator</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #008080;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "MS Sans Serif", Tahoma, sans-serif;
+  }
+
+  .calculator-wrapper {
+    width: 95vw;
+    height: 95vh;
+    max-width: 600px;
+    max-height: 800px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .calculator {
+    width: 100%;
+    height: 100%;
+    background: #c0c0c0;
+    padding: 1%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid #000;
+    border-top-color: #fff;
+    border-left-color: #fff;
+  }
+
+  .display {
+    background: #fff;
+    border: 2px inset #808080;
+    padding: 1%;
+    text-align: right;
+    font-size: calc(2vw + 8px);
+    flex: 0 0 auto;
+    overflow: hidden;
+  }
+
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2%;
+    flex: 1 1 auto;
+    align-items: stretch;
+  }
+
+  button {
+    background: #c0c0c0;
+    border: 2px solid #000;
+    border-top-color: #fff;
+    border-left-color: #fff;
+    font-size: calc(1.5vw + 6px);
+    cursor: pointer;
+  }
+
+  button:active {
+    border-top-color: #000;
+    border-left-color: #000;
+    border-bottom-color: #fff;
+    border-right-color: #fff;
+  }
+
+  .wide {
+    grid-column: span 2;
+  }
+</style>
+</head>
+<body>
+
+<div class="calculator-wrapper">
+  <div class="calculator">
+    <div id="display" class="display">0</div>
+    <div class="buttons">
+      <button onclick="clearDisplay()">C</button>
+      <button onclick="append('/')">/</button>
+      <button onclick="append('*')">*</button>
+      <button onclick="backspace()">←</button>
+
+      <button onclick="append('7')">7</button>
+      <button onclick="append('8')">8</button>
+      <button onclick="append('9')">9</button>
+      <button onclick="append('-')">-</button>
+
+      <button onclick="append('4')">4</button>
+      <button onclick="append('5')">5</button>
+      <button onclick="append('6')">6</button>
+      <button onclick="append('+')">+</button>
+
+      <button onclick="append('1')">1</button>
+      <button onclick="append('2')">2</button>
+      <button onclick="append('3')">3</button>
+      <button onclick="calculate()">=</button>
+
+      <button class="wide" onclick="append('0')">0</button>
+      <button onclick="append('.')">.</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const display = document.getElementById("display");
+
+  function append(value) {
+    if (display.textContent === "0") {
+      display.textContent = value;
+    } else {
+      display.textContent += value;
+    }
+  }
+
+  function clearDisplay() {
+    display.textContent = "0";
+  }
+
+  function backspace() {
+    display.textContent =
+      display.textContent.length > 1
+        ? display.textContent.slice(0, -1)
+        : "0";
+  }
+
+  function calculate() {
+    try {
+      display.textContent = Function(
+        `"use strict"; return (${display.textContent})`
+      )();
+    } catch {
+      display.textContent = "Error";
+    }
+  }
+</script>
+
+</body>
+</html>
