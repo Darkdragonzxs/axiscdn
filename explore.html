@@ -123,9 +123,7 @@ function looksLikeUrl(input) {
 function normalizeInput(input) {
     input = input.trim();
 
-    if (input === "axis://home") {
-        return null;
-    }
+    if (input === "axis://home") return null;
 
     if (looksLikeUrl(input)) {
         if (!input.startsWith("http://") && !input.startsWith("https://")) {
@@ -137,8 +135,8 @@ function normalizeInput(input) {
     }
 }
 
-function go() {
-    const input = addressBar.value;
+function go(url) {
+    const input = url || addressBar.value;
     if (!input) return;
 
     const finalUrl = normalizeInput(input);
@@ -151,34 +149,43 @@ function go() {
     frame.src = "/s/browser.html#" + finalUrl;
 }
 
-function goHome() {
-    loadHome();
-}
-
-addressBar.addEventListener("keydown", function(e) {
-    if (e.key === "Enter") go();
-});
-
-window.addEventListener("load", function() {
-    loadHome();
-});
-
-frame.addEventListener("load", function() {
+function updateAddressBar() {
     try {
         const currentPath = frame.contentWindow.location.pathname;
-
         if (currentPath.startsWith("/s/axis/")) {
             const encoded = currentPath.replace("/s/axis/", "");
             const decoded = __uv$config.decodeUrl(encoded);
-
             if (decoded) {
                 addressBar.value = decoded;
+                return;
             }
         }
     } catch (err) {
     }
-});
-</script>
 
+    if (frame.src === window.location.origin + "/newtab.html") {
+        addressBar.value = "axis://home";
+    } else {
+        addressBar.value = frame.src;
+    }
+}
+
+function goBack() {
+    frame.contentWindow.history.back();
+    setTimeout(updateAddressBar, 100); 
+}
+
+function goForward() {
+    frame.contentWindow.history.forward();
+    setTimeout(updateAddressBar, 100);
+}
+
+addressBar.addEventListener("keydown", e => {
+    if (e.key === "Enter") go();
+});
+
+frame.addEventListener("load", updateAddressBar);
+window.addEventListener("load", loadHome);
+</script>
 </body>
 </html>
