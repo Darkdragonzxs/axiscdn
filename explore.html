@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link href="https://unpkg.com/98.css" rel="stylesheet" />
+<style>
+html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #c0c0c0;
+}
+
+.app {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.toolbar {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.toolbar button {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.toolbar img {
+    width: 16px;
+    height: 16px;
+}
+
+.address-container {
+    display: flex;
+    padding: 4px;
+    gap: 4px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.address-container input {
+    flex: 1;
+}
+
+.browser-container {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+}
+
+iframe {
+    flex: 1;
+    width: 100%;
+    border: 2px inset #fff;
+    background: white;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <div class="toolbar">
+        <button onclick="goHome()">
+            <img src="https://img.icons8.com/color/16/home.png"/>
+            Home
+        </button>
+
+        <button onclick="frame.contentWindow.history.back()">
+            <img src="https://img.icons8.com/color/16/circled-left-2.png"/>
+            Back
+        </button>
+
+        <button onclick="frame.contentWindow.history.forward()">
+            <img src="https://img.icons8.com/color/16/circled-right-2.png"/>
+            Forward
+        </button>
+
+        <button onclick="frame.contentWindow.location.reload()">
+            <img src="https://img.icons8.com/color/16/refresh.png"/>
+            Refresh
+        </button>
+    </div>
+
+    <div class="address-container">
+        <label>Address:</label>
+        <input type="text" id="addressBar">
+        <button onclick="go()">Go</button>
+    </div>
+
+    <div class="browser-container">
+        <iframe id="browserFrame"></iframe>
+    </div>
+
+</div>
+
+<script src="/s/uv/uv.bundle.js"></script>
+<script src="/s/uv/uv.config.js"></script>
+
+<script>
+const frame = document.getElementById("browserFrame");
+const addressBar = document.getElementById("addressBar");
+
+function loadHome() {
+    frame.src = "/newtab.html";
+    addressBar.value = "axis://home";
+}
+
+function looksLikeUrl(input) {
+    return (
+        input.includes(".") &&
+        !input.includes(" ") &&
+        !input.startsWith("?")
+    );
+}
+
+function normalizeInput(input) {
+    input = input.trim();
+
+    if (input === "axis://home") {
+        return null;
+    }
+
+    if (looksLikeUrl(input)) {
+        if (!input.startsWith("http://") && !input.startsWith("https://")) {
+            input = "https://" + input;
+        }
+        return input;
+    } else {
+        return "https://swisscows.com/en/web?query=" + encodeURIComponent(input);
+    }
+}
+
+function go() {
+    const input = addressBar.value;
+    if (!input) return;
+
+    const finalUrl = normalizeInput(input);
+
+    if (!finalUrl) {
+        loadHome();
+        return;
+    }
+
+    frame.src = "/s/browser.html#" + finalUrl;
+}
+
+function goHome() {
+    loadHome();
+}
+
+addressBar.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") go();
+});
+
+window.addEventListener("load", function() {
+    loadHome();
+});
+
+frame.addEventListener("load", function() {
+    try {
+        const currentPath = frame.contentWindow.location.pathname;
+
+        if (currentPath.startsWith("/s/axis/")) {
+            const encoded = currentPath.replace("/s/axis/", "");
+            const decoded = __uv$config.decodeUrl(encoded);
+
+            if (decoded) {
+                addressBar.value = decoded;
+            }
+        }
+    } catch (err) {
+    }
+});
+</script>
+
+</body>
+</html>
