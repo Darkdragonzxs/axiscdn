@@ -1,0 +1,42 @@
+﻿[Arrow]
+Path=Mac OS Cursor in 24x24 size Normal.cur
+
+[AppStarting]
+Path=Mac OS Cursor in 24x24 size Working.ani
+
+[Wait]
+Path=Mac OS Cursor in 24x24 size busy.ani
+
+[Hand]
+Path=Mac OS Cursor in 24x24 size Link.cur
+
+[IBeam]
+Path=Mac OS Cursor in 24x24 size Text.cur
+
+[No]
+Path=Mac OS Cursor in 24x24 size unavailiable.cur
+
+[Help]
+Path=Mac OS Cursor in 24x24 size help.cur
+
+[NWPen]
+Path=Mac OS Cursor in 24x24 size handwriting.cur
+
+[SizeNWSE]
+Path=Mac OS Cursor in 24x24 size DGN 1.cur
+
+[SizeNESW]
+Path=Mac OS Cursor in 24x24 size DGN 2.cur
+
+[Crosshair]
+Path=Mac OS Cursor in 24x24 size Cross-Precision.cur
+
+[SizeAll]
+Path=Mac OS Cursor in 24x24 size Move.cur
+
+[SizeWE]
+Path=Mac OS Cursor in 24x24 size Horz.cur
+
+[SizeNS]
+Path=Mac OS Cursor in 24x24 size Vert.cur
+
